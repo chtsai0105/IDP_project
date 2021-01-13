@@ -30,5 +30,7 @@ for record in SeqIO.parse(inputfile, "fasta"):
 with open('IDP_S288c.pickle', 'wb') as fh:
     pickle.dump((IDP, IDR_percentage, IDR), fh)
 
-print("Disordered protein : {}".format(len(IDR_percentage)))
-print("Average disordered regions length in IDP: {}".format(np.average(np.asarray(IDR_percentage))))
+parser = list(SeqIO.parse(inputfile, "fasta"))
+lens_of_total_protein = len(parser)
+print("Disordered protein : {} out of {}".format(len(IDR_percentage, lens_of_total_protein)))
+print("Average disordered regions length of IDP: {}".format(np.average(np.asarray(IDR_percentage))))
