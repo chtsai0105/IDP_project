@@ -1,14 +1,18 @@
 #!/usr/bin/env python3
 import gzip
+import os
 import pickle
+import sys
 
 import iupred2a_lib
 import numpy as np
+import pandas as pd
 from Bio import SeqIO
 
-import numpy as np
-import pandas as pd
-from util.py import connect_to_db
+# For slurm to access functions in util
+sys.path.append(os.getcwd())
+from util import connect_to_db
+
 
 def idr_detector(arr, thresh=0.5, window_size=30):
     m = arr >= thresh
