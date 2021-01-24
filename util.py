@@ -1,4 +1,4 @@
-import mysql.connector as mariadb
+from sqlalchemy import create_engine
 
 def connect_to_db(db_info='mysql/db_host_port.txt'):
     # Read host and port from db_host_port.txt
@@ -8,12 +8,12 @@ def connect_to_db(db_info='mysql/db_host_port.txt'):
     port = var_lis[1]
 
     # Connect to database
-    db = mariadb.connect(
-            user="ctsai085",
-            password="stajichlab",
-            host=host,
-            port=port,
-            database="IDP_in_fungi"
-        )
+    creds = {'usr': 'ctsai085',
+             'pwd': 'stajichlab',
+             'hst': host,
+             'prt': port,
+             'dbn': 'IDP_in_fungi'}
+    connstr = 'mysql+mysqlconnector://{usr}:{pwd}@{hst}:{prt}/{dbn}'
+    engine = create_engine(connstr.format(**creds))
     
-    return db
+    return engine
