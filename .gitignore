@@ -1,6 +1,6 @@
 *
 !.gitignore
-
+!*.sql
 !*.py
 !orf_trans.fasta
 !IDP_S288c.pickle
