@@ -33,7 +33,7 @@ for species, fasta in zip(species_lis, fasta_lis):
                 string = ';'.join(str(e) for e in lis)
                 string = string.replace(',', ':')
                 tmp_df = pd.Series([record.id, IDR_percentage, string], index=['IDP', 'IDR_percentage', 'IDR'])
-                sub_df = pd.concat([sub_df, tmp_df], ignore_index=True)
+                sub_df = sub_df.append(tmp_df, ignore_index=True)
         sub_df['Species'] = species
     df = pd.concat([df, sub_df], ignore_index=True)
 
