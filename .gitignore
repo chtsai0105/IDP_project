@@ -2,6 +2,5 @@
 !.gitignore
 
 !*.py
-!orf_trans.fasta
-!IDP_S288c.pickle
+!*.bash
 !*.md
