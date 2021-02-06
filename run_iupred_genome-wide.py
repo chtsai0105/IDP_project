@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
-import gzip
 import argparse
+import gzip
+import re
 
 import iupred2a_lib
 import numpy as np
@@ -25,10 +26,12 @@ args = parser.parse_args()
 
 # Remove prefix and postfix in input path
 fasta = args.i
-species = fasta.strip('pep/').strip('.pep.all.fa.gz')
+species = re.sub('.pep.all.fa.gz$', '', fasta)
+species = re.sub('^pep/', '', species)
 
 
-df = pd.DataFrame(columns=['IDR_start', 'IDR_end', 'IDR_percentage', 'IDP'])
+idr_df = pd.DataFrame(columns=['IDR_start', 'IDR_end', 'IDR_percentage', 'IDP'])
+idp_char_dict = dict()
 with gzip.open(fasta, 'rt') as fh:
     for record in SeqIO.parse(fh, "fasta"):
         iupred_scores = np.asarray(iupred2a_lib.iupred(record.seq, "long"))
@@ -39,11 +42,18 @@ with gzip.open(fasta, 'rt') as fh:
             tmp_df = pd.DataFrame(IDR_in_entry, columns=['IDR_start', 'IDR_end'])
             tmp_df['IDR_percentage'] = IDR_percentage
             tmp_df['IDP'] = record.id
-            df = pd.concat([df, tmp_df], ignore_index=True)
-df['Species'] = species
+            idr_df = pd.concat([idr_df, tmp_df], ignore_index=True)
+            idp_char_dict[record.id] = [len(record.seq), IDR_in_entry.shape[0], IDR_percentage.sum()]
+
+idp_char_df = pd.DataFrame.from_dict(idp_char_dict, orient='index', columns=['Length', 'IDR_counts', 'Total_IDR_percentage'])
+idp_char_df = idp_char_df.rename_axis('IDP').reset_index()
+idr_df['Species'] = species
+idp_char_df['Species'] = species
 
 # Reorder the dataframe
-df = df[['Species', 'IDP', 'IDR_start', 'IDR_end', 'IDR_percentage']]
+idr_df = idr_df[['Species', 'IDP', 'IDR_start', 'IDR_end', 'IDR_percentage']]
+idp_char_df = idp_char_df[['Species', 'IDP', 'Length', 'IDR_counts', 'Total_IDR_percentage']]
 
 # Save to csv file
-df.to_csv(f'{args.o}.csv', index=False)
+idr_df.to_csv(f'{args.o}_IDR.csv', index=False)
+idp_char_df.to_csv(f'{args.o}_IDP.csv', index=False)
