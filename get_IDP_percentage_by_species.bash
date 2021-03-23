@@ -10,5 +10,4 @@ do
     total_IDP=`expr $(cat output/${species}_IDP.csv | wc -l) - 1`
     species=`echo $species | awk '{match($0, /^_?[^_]+_[^_.]+/); print substr($0, RSTART, RLENGTH)}'` # Remove suffix
     echo $species, $total_prot, $total_IDP
-done
-# done >> stat/IDP_percentage.csv
+done >> stat/IDP_percentage.csv
