@@ -4,7 +4,8 @@
 !*.py
 !*.bash
 !*.md
-!stat/
-!stat/*
+!lib/
+!lib/*
+lib/*.json
 !figure/
 !figure/*
