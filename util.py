@@ -1,20 +1,9 @@
-from sqlalchemy import create_engine
-
-
-def connect_to_db(db_info='mysql/db_host_port.txt'):
-    # Read host and port from db_host_port.txt
-    with open(db_info, 'r') as fh:
-        var_lis = fh.read().rstrip().split(",")
-    host = var_lis[0]
-    port = var_lis[1]
-
-    # Connect to database
-    creds = {'usr': 'ctsai085',
-             'pwd': 'stajichlab',
-             'hst': host,
-             'prt': port,
-             'dbn': 'IDP_in_fungi'}
-    connstr = 'mysql+mysqlconnector://{usr}:{pwd}@{hst}:{prt}/{dbn}'
-    engine = create_engine(connstr.format(**creds))
-
-    return engine
+def fill_phylo_ranks(df):
+    desired_ranks = ['phylum', 'subphylum', 'class',
+                     'subclass', 'order', 'family', 'genus', 'species']
+    # Fill empty ranks with higher class names
+    for col in df.loc[:, desired_ranks]:
+        na_idx = df[col] == ""
+        if na_idx.any() == True:
+            df.loc[na_idx, col] = df[previous_col][na_idx]
+        previous_col = col
