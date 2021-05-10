@@ -33,7 +33,8 @@ basefolder = f'pub/release-{release}/fungi'
 url_base = '/'.join((host, basefolder))
 
 # Retrieve data from ensembl metadata
-species_dict = dict()
+meta_dict = dict()
+download_dict = dict()
 for idx, dat in enumerate(data):
     # Assembly info
     display_name = dat['organism']['display_name']
@@ -44,34 +45,46 @@ for idx, dat in enumerate(data):
     asm_name = dat['assembly']['assembly_name']
     asm_def = dat['assembly']['assembly_default']
     total_prot = dat['annotations']['nProteinCoding']
-    file_name = '.'.join((url_name, asm_def))
-    # URL for fasta file
+    # URL for DNA, pep fasta and gff file
+    basename = '.'.join((url_name, asm_def))
+    dna_urlname = '.'.join((basename, 'dna', 'toplevel', 'fa', 'gz'))
+    pep_urlname = '.'.join((basename, 'pep', 'all', 'fa', 'gz'))
+    gff_urlname = '.'.join((basename, release, 'gff3', 'gz'))
+    # Handle subfolder name
     dbname = re.sub(rf'_core_{release}_\d+_\d+', "",
                     dat['databases'][0]['dbname'])
     subfolder = dat['organism']['name']
     # Handle collection folders
     if dbname.startswith('fungi_'):
         subfolder = '/'.join((dbname, subfolder))
-    # Final url (Unfinished, currently point to the folder but not fasta file yet)
-    dna_url = '/'.join((url_base, 'fasta', subfolder, 'dna'))
-    pep_url = '/'.join((url_base, 'fasta', subfolder, 'pep'))
+    # Final url
+    dna_url = '/'.join((url_base, 'fasta', subfolder, 'dna', dna_urlname))
+    pep_url = '/'.join((url_base, 'fasta', subfolder, 'pep', pep_urlname))
+    gff_url = '/'.join((url_base, 'gff3', subfolder, gff_urlname))
     # Output to dict
-    species_dict[idx] = [asm_acc, display_name, asm_name, taxo_id,
-                         asm_length, total_prot, dna_url, pep_url, file_name]
+    meta_dict[idx] = [asm_acc, display_name, basename, asm_name, asm_length, total_prot, taxo_id]
+    download_dict[idx] = [asm_acc, display_name, dna_url, pep_url, gff_url]
 
-df = pd.DataFrame.from_dict(species_dict, orient='index', columns=[
-                            'ACCESSION', 'SPECIES', 'ASM_NAME', 'NCBI_TAXID', 'ASM_LENGTH', 'TOTAL_PROTEIN', 'DNA_URL', 'PEP_URL', 'FILENAME'])
+# Convert dictionary to dataframe
+meta_df = pd.DataFrame.from_dict(meta_dict, orient='index', columns=[
+    'ACCESSION', 'DISPLAY_NAME', 'FILENAME', 'ASM_NAME', 'ASM_LENGTH', 'TOTAL_PROTEIN', 'NCBI_TAXID'])
+download_df = pd.DataFrame.from_dict(download_dict, orient='index', columns=[
+                                     'ACCESSION', 'DISPLAY_NAME', 'DNA_URL', 'PEP_URL', 'GFF_URL'])
+# Save the download link table
+download_df.to_csv('./lib/ensembl_download.csv', index=False)
 
-
+# Using ete3 package to handle taxa info
 ncbi = NCBITaxa()
-taxids = df['NCBI_TAXID']
+taxids = meta_df['NCBI_TAXID']
 desired_ranks = ['phylum', 'subphylum', 'class',
-                 'subclass', 'order', 'family', 'genus']
+                 'subclass', 'order', 'family', 'genus', 'species']
 
 results = list()
 for taxid in taxids:
     results.append(get_desired_ranks(taxid, desired_ranks))
 taxo_df = pd.DataFrame(results, columns=desired_ranks)
 
-df = pd.concat([df, taxo_df], axis=1)
-df.to_csv('./lib/ensembl_metadata.csv', index=False)
+# Join taxo_df as additional columns
+meta_df = pd.concat([meta_df, taxo_df], axis=1)
+# Save the metadata table
+meta_df.to_csv('./lib/ensembl_metadata.csv', index=False)
