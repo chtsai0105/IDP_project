@@ -1,11 +1,12 @@
-*
-!.gitignore
+.ipynb_checkpoints
+*.ipynb
+mysql
+__pycache__
+.vscode
 
-!*.py
-!*.bash
-!*.md
-!lib/
-!lib/*
+pep
+slurm_log
+
 lib/*.json
-!figure/
-!figure/*
+output/*/IDP
+output/IDR
